@@ -2,9 +2,8 @@ FROM alpine:3.4
 
 MAINTAINER ngineered <support@ngineered.co.uk>
 
-ENV php_conf /etc/php7/php.ini 
+ENV php_conf /etc/php7/php.ini
 ENV fpm_conf /etc/php7/php-fpm.d/www.conf
-ENV composer_hash e115a8dc7871f15d853148a7fbac7da27d6c0030b848d9b3dc09e2a0388afed865e6a3d6b3c0fad45c48e2b5fc1196ae
 
 RUN echo http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories && apk update && \
     apk add --no-cache bash \
@@ -40,11 +39,7 @@ RUN echo http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories 
     mkdir -p /etc/nginx && \
     mkdir -p /var/www/app && \
     mkdir -p /run/nginx && \
-    mkdir -p /var/log/supervisor && \
-    php7 -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
-    php7 -r "if (hash_file('SHA384', 'composer-setup.php') === '${composer_hash}') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;" && \
-    php7 composer-setup.php --install-dir=/usr/bin --filename=composer && \
-    php7 -r "unlink('composer-setup.php');"
+    mkdir -p /var/log/supervisor
 
 ADD conf/supervisord.conf /etc/supervisord.conf
 
@@ -84,9 +79,6 @@ find /etc/php7/conf.d/ -name "*.ini" -exec sed -i -re 's/^(\s*)#(.*)/\1;\2/g' {}
 
 # Add Scripts
 ADD scripts/start.sh /start.sh
-ADD scripts/pull /usr/bin/pull
-ADD scripts/push /usr/bin/push
-RUN chmod 755 /usr/bin/pull && chmod 755 /usr/bin/push
 RUN chmod 755 /start.sh
 
 # copy in code
