@@ -46,6 +46,7 @@ ADD conf/supervisord.conf /etc/supervisord.conf
 # Copy our nginx config
 RUN rm -Rf /etc/nginx/nginx.conf
 ADD conf/nginx.conf /etc/nginx/nginx.conf
+ADD conf/php-fpm.conf /etc/php7/php-fpm.conf
 
 # nginx site conf
 RUN mkdir -p /etc/nginx/sites-available/ && \
