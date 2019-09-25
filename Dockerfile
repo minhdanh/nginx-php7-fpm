@@ -1,9 +1,12 @@
-FROM alpine:3.4
+FROM minio/mc:RELEASE.2019-09-20T00-09-55Z as mc
+FROM php:7.3.9-fpm-alpine3.10
 
 MAINTAINER ngineered <support@ngineered.co.uk>
 
 ENV php_conf /etc/php7/php.ini
 ENV fpm_conf /etc/php7/php-fpm.d/www.conf
+
+COPY --from=mc /usr/bin/mc /usr/bin/mc
 
 RUN echo http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories && apk update && \
     apk add --no-cache bash \
@@ -34,26 +37,22 @@ RUN echo http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories 
     php7-iconv \
     php7-json \
     php7-phar \
-    php5-soap \
-    php7-dom && \
-    mkdir -p /etc/nginx && \
-    mkdir -p /var/www/app && \
-    mkdir -p /run/nginx && \
-    mkdir -p /var/log/supervisor
+    php7-soap \
+    php7-dom
 
 ADD conf/supervisord.conf /etc/supervisord.conf
 
 # Copy our nginx config
-RUN rm -Rf /etc/nginx/nginx.conf
+# RUN rm -Rf /etc/nginx/nginx.conf
 ADD conf/nginx.conf /etc/nginx/nginx.conf
 ADD conf/php-fpm.conf /etc/php7/php-fpm.conf
 
 # nginx site conf
 RUN mkdir -p /etc/nginx/sites-available/ && \
-mkdir -p /etc/nginx/sites-enabled/ && \
-mkdir -p /etc/nginx/ssl/ && \
-rm -Rf /var/www/* && \
-mkdir /var/www/html/
+    mkdir -p /app && \
+    mkdir -p /run/nginx && \
+    mkdir -p /etc/nginx/sites-enabled/
+
 ADD conf/nginx-site.conf /etc/nginx/sites-available/default.conf
 RUN ln -s /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/default.conf
 
@@ -82,10 +81,6 @@ find /etc/php7/conf.d/ -name "*.ini" -exec sed -i -re 's/^(\s*)#(.*)/\1;\2/g' {}
 ADD scripts/start.sh /start.sh
 RUN chmod 755 /start.sh
 
-# copy in code
-ADD src/ /var/www/html/
+EXPOSE 80
 
-EXPOSE 443 80
-
-#CMD ["/usr/bin/supervisord", "-n", "-c",  "/etc/supervisord.conf"]
 CMD ["/start.sh"]
