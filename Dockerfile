@@ -81,6 +81,7 @@ find /etc/php7/conf.d/ -name "*.ini" -exec sed -i -re 's/^(\s*)#(.*)/\1;\2/g' {}
 ADD scripts/start.sh /start.sh
 RUN chmod 755 /start.sh
 
+VOLUME /app
 EXPOSE 80
 
 CMD ["/start.sh"]
