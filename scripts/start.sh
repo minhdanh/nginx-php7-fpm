@@ -13,7 +13,12 @@ if [ ! -z ${S3_ACCESS_KEY_ID} ]; then
   echo "Downloading artifact..."
 
   mc config host add s3 $S3_ENDPOINT $S3_ACCESS_KEY_ID $S3_SECRET_ACCESS_KEY --api S3v4
-  mc cp s3/$S3_BUCKET/$DEPLOYMENT_NAME/$VERSION.tar.gz /tmp/
+  if [ ! -z ${MC_INSECURE} ]; then
+    mc --insecure cp s3/$S3_BUCKET/$DEPLOYMENT_NAME/$VERSION.tar.gz /tmp/
+  else
+    mc cp s3/$S3_BUCKET/$DEPLOYMENT_NAME/$VERSION.tar.gz /tmp/
+  fi
+  rm /root/.mc/config.json
 
   echo "Extracting artifact..."
   tar xf /tmp/$VERSION.tar.gz -C /app
